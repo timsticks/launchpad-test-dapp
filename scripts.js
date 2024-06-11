@@ -15,14 +15,25 @@ document.addEventListener("DOMContentLoaded", async function () {
     // Initialize HashConnect
     await hashconnect.init(appMetadata, "testnet", false);
 
-    // Connect to HashPack wallet
+    // Pairing state
+    let saveData = await hashconnect.connect();
+    let state = await hashconnect.connectToLocalWallet(saveData.pairingString);
+
+    // Set up pairing event listener
+    hashconnect.pairingEvent.once((pairingData) => {
+        walletAddress = pairingData.accountIds[0];
+        connectWalletBtn.innerText = `Connected: ${walletAddress}`;
+    });
+
     connectWalletBtn.addEventListener('click', async () => {
         try {
-            const initData = await hashconnect.connect();
-            const state = await hashconnect.connectToLocalWallet(initData);
-            const pairingData = state.pairingData[0];
-            walletAddress = pairingData.accountIds[0];
-            connectWalletBtn.innerText = `Connected: ${walletAddress}`;
+            if (!walletAddress) {
+                // Generate the pairing string
+                const pairingString = hashconnect.generatePairingString(saveData, "testnet", false);
+                hashconnect.connectToLocalWallet(pairingString);
+            } else {
+                alert(`Already connected: ${walletAddress}`);
+            }
         } catch (error) {
             console.error("Wallet connection failed:", error);
         }
