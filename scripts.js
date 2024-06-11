@@ -5,34 +5,24 @@ document.addEventListener("DOMContentLoaded", async function () {
     const isWhitelistedSelect = document.getElementById('isWhitelisted');
 
     let walletAddress = "";
-    let hashconnect = new HashConnect();
-    let appMetadata = {
-        name: "CrowdFunding",
-        description: "CrowdFunding DApp",
-        icon: "https://example.com/icon.png"
-    };
 
-    // Initialize HashConnect
-    await hashconnect.init(appMetadata, "testnet", false);
-
-    // Pairing state
-    let saveData = await hashconnect.connect();
-    let state = await hashconnect.connectToLocalWallet(saveData.pairingString);
-
-    // Set up pairing event listener
-    hashconnect.pairingEvent.once((pairingData) => {
-        walletAddress = pairingData.accountIds[0];
-        connectWalletBtn.innerText = `Connected: ${walletAddress}`;
-    });
-
+    // Initialize HashPack Wallet
     connectWalletBtn.addEventListener('click', async () => {
         try {
-            if (!walletAddress) {
-                // Generate the pairing string
-                const pairingString = hashconnect.generatePairingString(saveData, "testnet", false);
-                hashconnect.connectToLocalWallet(pairingString);
-            } else {
-                alert(`Already connected: ${walletAddress}`);
+            const hashConnect = new HashConnect();
+            const appData = {
+                name: "CrowdFunding DApp",
+                description: "DApp for crowdfunding",
+                icon: "https://example.com/icon.png"
+            };
+
+            await hashConnect.init(appData, "testnet", false);
+            const state = await hashConnect.connect();
+            const pairings = hashConnect.getPairings();
+
+            if (pairings.length > 0) {
+                walletAddress = pairings[0].accountIds[0];
+                connectWalletBtn.innerText = `Connected: ${walletAddress}`;
             }
         } catch (error) {
             console.error("Wallet connection failed:", error);
